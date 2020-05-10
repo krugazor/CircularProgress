@@ -1,7 +1,12 @@
 import Cocoa
 
+public protocol CircularProgressDelegate {
+    func labelText(progress: Double) -> String
+}
+
 @IBDesignable
 public final class CircularProgress: NSView {
+    public var progressDelegate : CircularProgressDelegate?
 	private lazy var radius = bounds.width < bounds.height ? bounds.midX * 0.8 : bounds.midY * 0.8
 	private var _progress: Double = 0
 	private var progressObserver: NSKeyValueObservation?
@@ -19,7 +24,7 @@ public final class CircularProgress: NSView {
 		$0.lineWidth = lineWidth
 	}
 
-	private lazy var progressLabel = with(CATextLayer(text: "0%")) {
+    private lazy var progressLabel = with(CATextLayer(text: progressDelegate?.labelText(progress: 0) ?? "0%")) {
 		$0.color = color
 		$0.fontSize = bounds.width < bounds.height ? bounds.width * 0.2 : bounds.height * 0.2
 		$0.anchorPoint = CGPoint(x: 0.5, y: 0.5)
@@ -28,7 +33,8 @@ public final class CircularProgress: NSView {
 		$0.frame = CGRect(x: 0, y: 0, width: bounds.width, height: $0.preferredFrameSize().height)
 		$0.position = CGPoint(x: bounds.midX, y: bounds.midY)
 		$0.isHidden = true
-	}
+		$0.isWrapped = true
+				}
 
 	internal lazy var indeterminateCircle = with(IndeterminateProgressCircleShapeLayer(radius: Double(radius), center: bounds.center)) {
 		$0.lineWidth = lineWidth
@@ -116,7 +122,7 @@ public final class CircularProgress: NSView {
 			progressLabel.isHidden = progress == 0 && isIndeterminate ? cancelButton.isHidden : !cancelButton.isHidden
 
 			if !progressLabel.isHidden {
-				progressLabel.string = "\(Int(_progress * 100))%"
+                progressLabel.string = progressDelegate?.labelText(progress: _progress) ?? "\(Int(_progress * 100))%"
 				successView.isHidden = true
 			}
 
@@ -294,7 +300,7 @@ public final class CircularProgress: NSView {
 		isIndeterminate = false
 
 		progressCircle.resetProgress()
-		progressLabel.string = "0%"
+        progressLabel.string = progressDelegate?.labelText(progress: 0) ?? "0%"
 
 		successView.isHidden = true
 
