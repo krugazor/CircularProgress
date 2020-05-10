@@ -7,7 +7,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	@IBOutlet private var manualCircularProgress: CircularProgress!
 	@IBOutlet private var progressCircularProgress: CircularProgress!
 	@IBOutlet private var indeterminateCircularProgress: CircularProgress!
-
+    @IBOutlet weak var useText: NSButton!
+    
 	func applicationWillFinishLaunching(_ notification: Notification) {
 		window.isMovableByWindowBackground = true
 		window.makeVibrant()
@@ -22,6 +23,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
 	private func configureManualView() {
+		if useText.state == NSControl.StateValue.on {
+			manualCircularProgress.progressDelegate = TextDelegate()
+		} else {
+			manualCircularProgress.progressDelegate = nil
+		}
 		animateWithRandomColor(
 			manualCircularProgress,
 			start: { circularProgress in
@@ -74,5 +80,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		}
 
 		startAnimating()
+	}
+}
+
+class TextDelegate : CircularProgressDelegate {
+	func labelText(progress: Double) -> String {
+		if progress <= 0.25 {
+			return "Low"
+		} else if progress <= 0.75 {
+			return "Medium"
+		} else {
+			return "High"
+		}
 	}
 }
